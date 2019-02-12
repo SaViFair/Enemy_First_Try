@@ -1,0 +1,83 @@
+public class EnemyControlScript : MonoBehaviour {
+
+    public float dirX;
+    [SerializeField] float moveSpeed = 3f;
+    public Rigidbody2D rb;
+    public bool facingRight = false;
+    public Vector3 localScale;
+    public static bool isAttacking = false;
+    public Animator animator;
+    public bool FacingRight;
+    public int health;
+
+    public void Start()
+    {
+        localScale = transform.localScale;
+        rb = GetComponent<Rigidbody2D>();
+        dirX = -1f;
+        FacingRight = true;
+
+        animator = GetComponent<Animator>();
+    }
+
+    public void Update()
+    {
+        if (FacingRight)
+        {
+            dirX = 1f;
+        }
+        else if (!FacingRight)
+        {
+            dirX = -1f;
+        }
+
+        if (isAttacking)
+        {
+            animator.SetTrigger("Attack");
+            animator.SetFloat("Speed", 0);
+        }
+
+        else
+        {
+            animator.SetTrigger("Attack");
+        }
+
+        if (health <= 0)
+        {
+            GameObject.Find("Score").SendMessage("AddKillPoints");
+            Destroy(this.gameObject);
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (!isAttacking)
+        {
+            animator.SetFloat("Speed", 1);
+            rb.velocity = new Vector2(dirX * moveSpeed, rb.velocity.y);
+        }
+        else
+        {
+            rb.velocity = Vector2.zero;
+        }
+    }
+
+    public void Flip()
+    {
+        FacingRight = !FacingRight;
+        transform.localScale = new Vector3(transform.localScale.x * -1, 1, 1);
+    }
+
+    public void OnTriggerEnter2D (Collider2D collider)
+    {
+        if (collider.tag == "SkeletonEdgePath" || collider.tag == "MeleeEnemy")
+        {
+            Flip();
+        }
+    }
+
+    public void TakeDamages(int SlashDamage)
+    {
+        health -= SlashDamage;
+    }
+}
